@@ -162,7 +162,7 @@
       background-image: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1800&q=80');
       background-image: url('hero.jpg'); /* REPLACE: drop your hero image here, named hero.jpg */
       background-size: cover;
-      background-position: center 40%;
+      background-position: 70% 40%;
       animation: kenburns 18s ease-in-out infinite alternate;
       will-change: transform;
     }
@@ -191,8 +191,8 @@
       position: relative;
       z-index: 2;
       padding: 0 var(--gutter) clamp(72px, 10vw, 120px);
-      max-width: var(--max-w);
-      margin: 0 auto;
+      max-width: 680px; /* cap so text block feels intentional, not just left-dumped */
+      margin: 0;        /* left-pinned, not centred */
       width: 100%;
     }
 
