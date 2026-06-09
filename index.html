@@ -175,19 +175,22 @@
     .hero__overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(
-        to top,
-        rgba(14,12,10,0.95) 0%,
-        rgba(14,12,10,0.55) 40%,
-        rgba(14,12,10,0.15) 70%,
-        transparent 100%
-      );
+      background:
+        linear-gradient(
+          to top,
+          rgba(14,12,10,1)    0%,
+          rgba(14,12,10,0.82) 28%,
+          rgba(14,12,10,0.3)  55%,
+          rgba(14,12,10,0.08) 80%,
+          transparent         100%
+        ),
+        linear-gradient(rgba(14,12,10,0.25), rgba(14,12,10,0.25));
     }
 
     .hero__content {
       position: relative;
       z-index: 2;
-      padding: 0 var(--gutter) clamp(60px, 8vw, 100px);
+      padding: 0 var(--gutter) clamp(72px, 10vw, 120px);
       max-width: var(--max-w);
       margin: 0 auto;
       width: 100%;
@@ -206,11 +209,12 @@
 
     .hero__wordmark {
       font-family: var(--font-display);
-      font-weight: 300;
-      font-size: clamp(4rem, 11vw, 9.5rem);
-      line-height: 0.92;
-      letter-spacing: -0.01em;
+      font-weight: 400;
+      font-size: clamp(4.5rem, 12vw, 10.5rem);
+      line-height: 0.9;
+      letter-spacing: -0.015em;
       color: var(--text);
+      text-shadow: 0 2px 40px rgba(14,12,10,0.7), 0 0 80px rgba(14,12,10,0.4);
       opacity: 0;
       transform: translateY(24px);
       animation: fadeUp 0.9s ease 0.5s forwards;
@@ -231,10 +235,11 @@
     }
 
     .hero__sub {
-      font-size: clamp(0.85rem, 1.5vw, 1rem);
-      color: var(--text-muted);
-      max-width: 360px;
-      letter-spacing: 0.03em;
+      font-size: clamp(0.82rem, 1.4vw, 0.95rem);
+      color: rgba(232,226,217,0.58);
+      max-width: 320px;
+      letter-spacing: 0.04em;
+      line-height: 1.7;
       opacity: 0;
       transform: translateY(16px);
       animation: fadeUp 0.8s ease 0.9s forwards;
