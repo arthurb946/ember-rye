@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ember & Rye — Soho, London</title>
+  <meta name="description" content="Ember & Rye. Soho's late-night room for smoke, brass & bitter things. Handcrafted cocktails and live jazz in the heart of London." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Ember & Rye — Soho, London" />
+  <meta property="og:description" content="Soho's late-night room for smoke, brass & bitter things." />
+  <meta property="og:type" content="website" />
+
+  <!-- Fonts: Cormorant Garamond (display) + Jost (body/UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =============================================
+       DESIGN TOKENS
+       ============================================= */
+    :root {
+      --bg:            #0d0a08;
+      --bg-surface:    #130e0b;
+      --bg-card:       #1a1210;
+      --text:          #f0e6d3;
+      --text-muted:    #8a7665;
+      --text-dim:      #4a3d32;
+      --accent:        #c4823a;       /* amber brass */
+      --accent-gold:   #d4a84b;       /* warm gold */
+      --accent-burgundy: #7a2d3a;    /* deep burgundy */
+      --border:        rgba(196,130,58,0.18);
+      --border-subtle: rgba(240,230,211,0.07);
+
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-ui:      'Jost', sans-serif;
+
+      --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    /* =============================================
+       RESET & BASE
+       ============================================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+
+    /* =============================================
+       GRAIN OVERLAY — applied to body via pseudo
+       Creates that cigarette-smoke film texture
+       ============================================= */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 200px 200px;
+    }
+
+    /* Ambient vignette on all sections */
+    .vignette {
+      position: relative;
+    }
+    .vignette::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(13,10,8,0.7) 100%);
+    }
+
+    /* =============================================
+       TYPOGRAPHY SYSTEM
+       ============================================= */
+    .display-xl {
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 9vw, 8rem);
+      font-weight: 300;
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+    }
+
+    .display-lg {
+      font-family: var(--font-display);
+      font-size: clamp(2.2rem, 5vw, 4.2rem);
+      font-weight: 300;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .display-md {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 400;
+      line-height: 1.2;
+    }
+
+    .eyebrow {
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .section-label {
+      font-family: var(--font-ui);
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* =============================================
+       LAYOUT UTILITIES
+       ============================================= */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 clamp(1.25rem, 5vw, 4rem);
+    }
+
+    .section {
+      padding: clamp(5rem, 10vw, 9rem) 0;
+    }
+
+    /* Thin brass rule dividers */
+    .brass-rule {
+      width: 48px;
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      margin: 1.5rem 0;
+    }
+
+    /* =============================================
+       SCROLL REVEAL ANIMATION SYSTEM
+       Base state: hidden. JS adds .visible
+       ============================================= */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Stagger siblings with CSS custom property --i */
+    .reveal-stagger {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+      transition-delay: calc(var(--i, 0) * 120ms);
+    }
+
+    .reveal-stagger.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Slide in from left */
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-40px);
+      transition: opacity 1s var(--ease-out), transform 1s var(--ease-out);
+    }
+
+    .reveal-left.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* Fade only — for decorative elements */
+    .reveal-fade {
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+
+    .reveal-fade.visible {
+      opacity: 1;
+    }
+
+    /* =============================================
+       REDUCED MOTION — always respect the user
+       ============================================= */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+
+    /* =============================================
+       NAVIGATION
+       ============================================= */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 1.5rem clamp(1.25rem, 5vw, 4rem);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.5s ease, backdrop-filter 0.5s ease, padding 0.4s ease;
+    }
+
+    /* Scrolled state: frosted glass */
+    .nav.scrolled {
+      background: rgba(13, 10, 8, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .nav__logo {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: var(--text);
+    }
+
+    .nav__logo span {
+      color: var(--accent);
+    }
+
+    .nav__links {
+      display: flex;
+      gap: 2.5rem;
+      align-items: center;
+    }
+
+    .nav__links a {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      transition: color 0.3s ease;
+      position: relative;
+    }
+
+    .nav__links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--accent);
+      transition: width 0.35s var(--ease-out);
+    }
+
+    .nav__links a:hover {
+      color: var(--text);
+    }
+
+    .nav__links a:hover::after {
+      width: 100%;
+    }
+
+    .nav__reserve {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1.2rem;
+      transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .nav__reserve:hover {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    /* Mobile nav */
+    .nav__hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+    }
+
+    .nav__hamburger span {
+      display: block;
+      width: 22px;
+      height: 1px;
+      background: var(--text);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .nav__hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .nav__hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav__hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+    .nav__mobile-menu {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(13,10,8,0.97);
+      z-index: 99;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .nav__mobile-menu.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .nav__mobile-menu a {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 6vw, 3rem);
+      font-weight: 300;
+      color: var(--text-muted);
+      transition: color 0.3s ease;
+    }
+
+    .nav__mobile-menu a:hover { color: var(--text); }
+
+    @media (max-width: 768px) {
+      .nav__links { display: none; }
+      .nav__hamburger { display: flex; }
+      .nav__mobile-menu { display: flex; }
+    }
+
+    /* =============================================
+       HERO SECTION
+       Full-viewport dark cinematic opener
+       ============================================= */
+    .hero {
+      position: relative;
+      height: 100svh;
+      min-height: 600px;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+
+    /* CSS-painted atmospheric background — warm amber gradient smoke */
+    .hero__bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 60% 40%, rgba(122,45,58,0.35) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 30% 70%, rgba(196,130,58,0.2) 0%, transparent 55%),
+        radial-gradient(ellipse 100% 80% at 50% 50%, rgba(26,18,16,0.6) 0%, transparent 100%),
+        linear-gradient(175deg, #0d0a08 0%, #1a0e0a 40%, #0d0a08 100%);
+      will-change: transform;
+    }
+
+    /* Atmospheric light shaft — the "lamp in a smoky room" effect */
+    .hero__bg::before {
+      content: '';
+      position: absolute;
+      top: -10%;
+      left: 55%;
+      width: 300px;
+      height: 120%;
+      background: linear-gradient(180deg, rgba(212,168,75,0.08) 0%, rgba(196,130,58,0.04) 50%, transparent 100%);
+      transform: rotate(-12deg);
+      filter: blur(40px);
+    }
+
+    /* Horizontal brass line across the hero — vintage poster detail */
+    .hero__bg::after {
+      content: '';
+      position: absolute;
+      bottom: 120px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(196,130,58,0.3) 20%, rgba(196,130,58,0.3) 80%, transparent);
+    }
+
+    .hero__content {
+      position: relative;
+      z-index: 2;
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 5vw, 4rem);
+      max-width: 900px;
+      padding-bottom: clamp(4rem, 8vw, 7rem);
+    }
+
+    .hero__eyebrow {
+      margin-bottom: 1.5rem;
+      /* Stagger: 0ms */
+    }
+
+    .hero__title {
+      font-family: var(--font-display);
+      font-size: clamp(4.5rem, 11vw, 10rem);
+      font-weight: 300;
+      line-height: 0.92;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 0.3em;
+      /* Stagger: 150ms */
+    }
+
+    .hero__title em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero__tagline {
+      font-family: var(--font-display);
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--text-muted);
+      max-width: 500px;
+      line-height: 1.5;
+      margin-bottom: 2.5rem;
+      /* Stagger: 300ms */
+    }
+
+    .hero__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: var(--accent);
+      padding: 1rem 2rem;
+      transition: background 0.35s ease, transform 0.3s ease, box-shadow 0.3s ease;
+      /* Stagger: 450ms */
+    }
+
+    .hero__cta::after {
+      content: '→';
+      transition: transform 0.3s ease;
+    }
+
+    .hero__cta:hover {
+      background: var(--accent-gold);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(196,130,58,0.3);
+    }
+
+    .hero__cta:hover::after {
+      transform: translateX(4px);
+    }
+
+    /* Scroll indicator */
+    .hero__scroll {
+      position: absolute;
+      bottom: 2rem;
+      right: clamp(1.25rem, 5vw, 4rem);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-dim);
+      font-size: 0.55rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+    }
+
+    .hero__scroll-line {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(180deg, var(--accent), transparent);
+      animation: scrollPulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.4; transform: scaleY(1); }
+      50% { opacity: 1; transform: scaleY(1.15); }
+    }
+
+    /* Hero load animations — JS applies these classes */
+    .hero-load {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s var(--ease-out), transform 1s var(--ease-out);
+    }
+
+    .hero-load.loaded {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =============================================
+       INTRO / ATMOSPHERE SECTION
+       Large italic quote, off-centre composition
+       ============================================= */
+    .intro {
+      background: var(--bg-surface);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .intro::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    .intro__inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(3rem, 6vw, 6rem);
+      align-items: center;
+    }
+
+    .intro__text {
+      max-width: 480px;
+    }
+
+    .intro__quote {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.5rem);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.35;
+      color: var(--text);
+      margin: 1.5rem 0;
+    }
+
+    .intro__quote em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .intro__body {
+      font-size: 0.9rem;
+      line-height: 1.85;
+      color: var(--text-muted);
+      max-width: 380px;
+    }
+
+    /* Large decorative numeral — atmospheric detail */
+    .intro__visual {
+      position: relative;
+      height: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .intro__glow-panel {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 70% at 50% 50%, rgba(122,45,58,0.25) 0%, transparent 70%),
+        linear-gradient(135deg, var(--bg-card) 0%, #1f1410 100%);
+      border: 1px solid var(--border);
+    }
+
+    .intro__glow-panel::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 30px;
+      right: 30px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+      opacity: 0.6;
+    }
+
+    .intro__numeral {
+      font-family: var(--font-display);
+      font-size: clamp(8rem, 16vw, 14rem);
+      font-weight: 300;
+      color: rgba(196,130,58,0.08);
+      line-height: 1;
+      position: relative;
+      z-index: 1;
+      user-select: none;
+    }
+
+    .intro__panel-text {
+      position: absolute;
+      bottom: 2rem;
+      left: 2rem;
+      right: 2rem;
+      z-index: 2;
+    }
+
+    .intro__panel-text p {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-style: italic;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .intro__inner {
+        grid-template-columns: 1fr;
+      }
+      .intro__visual { height: 280px; }
+    }
+
+    /* =============================================
+       COCKTAILS SECTION
+       Bespoke list layout — not a boring card grid
+       ============================================= */
+    .cocktails {
+      position: relative;
+    }
+
+    .cocktails__header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: clamp(3rem, 6vw, 5rem);
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .cocktails__header-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      max-width: 280px;
+      line-height: 1.7;
+      text-align: right;
+    }
+
+    /* Each cocktail: full-width row that opens on hover */
+    .cocktail-item {
+      display: grid;
+      grid-template-columns: 2.5rem 1fr auto;
+      align-items: start;
+      gap: 1.5rem 2rem;
+      padding: 2rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: default;
+      transition: background 0.3s ease;
+      position: relative;
+    }
+
+    .cocktail-item::before {
+      content: '';
+      position: absolute;
+      left: -2rem;
+      right: -2rem;
+      top: 0;
+      bottom: 0;
+      background: rgba(196,130,58,0.04);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .cocktail-item:hover::before {
+      opacity: 1;
+    }
+
+    .cocktail-item:hover .cocktail-item__name {
+      color: var(--accent);
+    }
+
+    .cocktail-item__num {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-style: italic;
+      padding-top: 0.2rem;
+    }
+
+    .cocktail-item__name {
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.1;
+      transition: color 0.3s ease;
+      margin-bottom: 0.5rem;
+    }
+
+    .cocktail-item__ingredients {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .cocktail-item__price {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 300;
+      color: var(--accent);
+      white-space: nowrap;
+      padding-top: 0.2rem;
+    }
+
+    @media (max-width: 600px) {
+      .cocktail-item {
+        grid-template-columns: 1.5rem 1fr;
+      }
+      .cocktail-item__price {
+        grid-column: 2;
+        padding-top: 0.5rem;
+      }
+    }
+
+    /* =============================================
+       JAZZ / EVENTS SECTION
+       Dark panel with amber accents
+       ============================================= */
+    .events {
+      background: var(--bg-surface);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .events::before {
+      content: 'JAZZ';
+      position: absolute;
+      right: -2rem;
+      top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      font-family: var(--font-display);
+      font-size: clamp(6rem, 12vw, 10rem);
+      font-weight: 300;
+      color: rgba(196,130,58,0.04);
+      letter-spacing: 0.3em;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .events__inner {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: clamp(3rem, 6vw, 6rem);
+      align-items: start;
+    }
+
+    .events__intro {
+      position: sticky;
+      top: 8rem;
+    }
+
+    .events__title {
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .events__desc {
+      font-size: 0.88rem;
+      line-height: 1.85;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    /* Weekly schedule */
+    .schedule {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .schedule__item {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.4rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.3s ease;
+      position: relative;
+    }
+
+    .schedule__item--tonight {
+      /* highlight today */
+    }
+
+    .schedule__item--tonight::before {
+      content: '● Tonight';
+      position: absolute;
+      top: -0.6rem;
+      left: 80px;
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .schedule__day {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .schedule__act {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--text);
+      margin-bottom: 0.15rem;
+    }
+
+    .schedule__genre {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .schedule__time {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 768px) {
+      .events__inner {
+        grid-template-columns: 1fr;
+      }
+      .events__intro {
+        position: static;
+      }
+    }
+
+    /* =============================================
+       INTERIOR / MOOD SECTION
+       CSS-painted atmospheric panels
+       ============================================= */
+    .interior {
+      padding-bottom: 0;
+      overflow: hidden;
+    }
+
+    .interior__header {
+      margin-bottom: 3rem;
+    }
+
+    /* 5-panel mosaic grid */
+    .interior__grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: 280px 280px;
+      gap: 4px;
+    }
+
+    .interior__panel {
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Panel layout — asymmetric composition */
+    .interior__panel:nth-child(1) { grid-column: 1 / 6;  grid-row: 1; }
+    .interior__panel:nth-child(2) { grid-column: 6 / 9;  grid-row: 1; }
+    .interior__panel:nth-child(3) { grid-column: 9 / 13; grid-row: 1 / 3; }
+    .interior__panel:nth-child(4) { grid-column: 1 / 4;  grid-row: 2; }
+    .interior__panel:nth-child(5) { grid-column: 4 / 9;  grid-row: 2; }
+
+    /* Each panel: unique atmospheric CSS painting */
+    .interior__panel:nth-child(1) {
+      background:
+        radial-gradient(ellipse 60% 80% at 30% 60%, rgba(122,45,58,0.5) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 60% at 70% 30%, rgba(196,130,58,0.15) 0%, transparent 50%),
+        linear-gradient(135deg, #1a0d10 0%, #2a1510 60%, #1a0a0a 100%);
+    }
+
+    .interior__panel:nth-child(2) {
+      background:
+        radial-gradient(ellipse 100% 60% at 50% 80%, rgba(212,168,75,0.2) 0%, transparent 60%),
+        linear-gradient(180deg, #0d0a08 0%, #1c1208 50%, #120e08 100%);
+    }
+
+    .interior__panel:nth-child(3) {
+      background:
+        radial-gradient(ellipse 60% 40% at 50% 20%, rgba(212,168,75,0.3) 0%, transparent 50%),
+        radial-gradient(ellipse 80% 60% at 50% 80%, rgba(122,45,58,0.2) 0%, transparent 60%),
+        linear-gradient(180deg, #16100c 0%, #1a0e0a 100%);
+    }
+
+    .interior__panel:nth-child(4) {
+      background:
+        radial-gradient(ellipse 80% 100% at 50% 50%, rgba(196,130,58,0.12) 0%, transparent 70%),
+        linear-gradient(160deg, #100d0a 0%, #1a1208 100%);
+    }
+
+    .interior__panel:nth-child(5) {
+      background:
+        radial-gradient(ellipse 70% 50% at 40% 60%, rgba(122,45,58,0.3) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 80% at 80% 20%, rgba(196,130,58,0.1) 0%, transparent 50%),
+        linear-gradient(135deg, #16100c 0%, #1f1410 100%);
+    }
+
+    /* Subtle inner glow on each panel */
+    .interior__panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(13,10,8,0.6) 100%);
+      z-index: 1;
+    }
+
+    /* Caption labels on panels */
+    .interior__panel-caption {
+      position: absolute;
+      bottom: 1.25rem;
+      left: 1.25rem;
+      z-index: 2;
+      font-family: var(--font-ui);
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(240,230,211,0.4);
+    }
+
+    /* Scale on hover */
+    .interior__panel:hover .interior__panel-inner {
+      transform: scale(1.04);
+    }
+
+    .interior__panel-inner {
+      position: absolute;
+      inset: 0;
+      transition: transform 8s var(--ease-out);
+    }
+
+    /* Horizontal lines decorating some panels — vintage detail */
+    .interior__panel:nth-child(1)::after {
+      content: '';
+      position: absolute;
+      left: 1.5rem;
+      right: 1.5rem;
+      top: 1.5rem;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(196,130,58,0.4), transparent);
+      z-index: 2;
+    }
+
+    @media (max-width: 900px) {
+      .interior__grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 200px 200px 200px;
+      }
+      .interior__panel:nth-child(1) { grid-column: 1 / 2; grid-row: 1; }
+      .interior__panel:nth-child(2) { grid-column: 2 / 3; grid-row: 1; }
+      .interior__panel:nth-child(3) { grid-column: 1 / 3; grid-row: 2; }
+      .interior__panel:nth-child(4) { grid-column: 1 / 2; grid-row: 3; }
+      .interior__panel:nth-child(5) { grid-column: 2 / 3; grid-row: 3; }
+    }
+
+    /* =============================================
+       RESERVATIONS SECTION
+       ============================================= */
+    .reservations {
+      background: var(--bg-surface);
+    }
+
+    .reservations::before {
+      content: '';
+      display: block;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    .reservations__inner {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: clamp(3rem, 6vw, 7rem);
+      align-items: start;
+    }
+
+    .reservations__info {
+      position: sticky;
+      top: 7rem;
+    }
+
+    .reservations__title {
+      margin-top: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Hours table */
+    .hours {
+      margin: 2rem 0;
+    }
+
+    .hours__row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.82rem;
+    }
+
+    .hours__day {
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .hours__time {
+      color: var(--text);
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+    }
+
+    .hours__row--closed .hours__time {
+      color: var(--text-dim);
+      font-style: italic;
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+    }
+
+    /* Address block */
+    .reservations__address {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .reservations__address p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.9;
+    }
+
+    .reservations__address strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    /* Booking form */
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .form__field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form__row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .form label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .form input,
+    .form select,
+    .form textarea {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-subtle);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 0.9rem;
+      font-weight: 300;
+      padding: 0.9rem 1rem;
+      outline: none;
+      transition: border-color 0.3s ease, background 0.3s ease;
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+    }
+
+    .form input::placeholder,
+    .form textarea::placeholder {
+      color: var(--text-dim);
+    }
+
+    .form input:focus,
+    .form select:focus,
+    .form textarea:focus {
+      border-color: var(--accent);
+      background: rgba(196,130,58,0.04);
+    }
+
+    .form select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a7665' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      padding-right: 2.5rem;
+    }
+
+    .form option {
+      background: var(--bg-card);
+    }
+
+    .form textarea {
+      resize: none;
+      height: 100px;
+    }
+
+    .form__submit {
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: var(--accent);
+      border: none;
+      padding: 1.1rem 2rem;
+      cursor: pointer;
+      transition: background 0.35s ease, transform 0.3s ease, box-shadow 0.3s ease;
+      margin-top: 0.5rem;
+    }
+
+    .form__submit:hover {
+      background: var(--accent-gold);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(196,130,58,0.25);
+    }
+
+    .form__submit:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    /* Form sent state */
+    .form__success {
+      display: none;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .form__success.visible {
+      display: block;
+    }
+
+    .form__success p {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    @media (max-width: 768px) {
+      .reservations__inner {
+        grid-template-columns: 1fr;
+      }
+      .reservations__info {
+        position: static;
+      }
+      .form__row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* =============================================
+       FOOTER
+       ============================================= */
+    .footer {
+      padding: clamp(3rem, 6vw, 5rem) 0 clamp(2rem, 4vw, 3rem);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .footer__inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2.5rem;
+      text-align: center;
+    }
+
+    .footer__logo {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: var(--text);
+    }
+
+    .footer__logo span {
+      color: var(--accent);
+    }
+
+    .footer__poem {
+      font-family: var(--font-display);
+      font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text-muted);
+      max-width: 400px;
+      line-height: 1.8;
+    }
+
+    .footer__social {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .footer__social a {
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      transition: color 0.3s ease;
+    }
+
+    .footer__social a:hover {
+      color: var(--accent);
+    }
+
+    .footer__copyright {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+
+    /* =============================================
+       BUTTON COMPONENT
+       ============================================= */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 0.9rem 1.8rem;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- =============================================
+       NAVIGATION
+       ============================================= -->
+  <nav class="nav" id="nav" aria-label="Main navigation">
+    <a href="#" class="nav__logo" aria-label="Ember & Rye home">Ember <span>&</span> Rye</a>
+
+    <ul class="nav__links" role="list">
+      <li><a href="#cocktails">Menu</a></li>
+      <li><a href="#events">Jazz</a></li>
+      <li><a href="#interior">Interior</a></li>
+      <li><a href="#reservations" class="nav__reserve">Reserve</a></li>
+    </ul>
+
+    <button class="nav__hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile nav overlay -->
+  <div class="nav__mobile-menu" id="mobileMenu" aria-hidden="true">
+    <a href="#cocktails" class="mobile-link">Menu</a>
+    <a href="#events" class="mobile-link">Jazz</a>
+    <a href="#interior" class="mobile-link">Interior</a>
+    <a href="#reservations" class="mobile-link">Reserve</a>
+  </div>
+
+  <main>
+
+    <!-- =============================================
+         1. HERO SECTION
+         ============================================= -->
+    <section class="hero vignette" id="hero" aria-labelledby="hero-title">
+      <div class="hero__bg" id="heroBg" aria-hidden="true"></div>
+
+      <div class="hero__content">
+        <p class="eyebrow hero-load" style="transition-delay: 0ms">— Est. 2019, Soho, London</p>
+        <h1 class="hero__title hero-load" id="hero-title" style="transition-delay: 150ms">
+          Ember<br><em>&amp; Rye</em>
+        </h1>
+        <p class="hero__tagline hero-load" style="transition-delay: 320ms">
+          Soho's late-night room for smoke,<br>brass &amp; bitter things.
+        </p>
+        <a href="#reservations" class="hero__cta hero-load" style="transition-delay: 490ms">
+          Reserve a Table
+        </a>
+      </div>
+
+      <div class="hero__scroll" aria-hidden="true">
+        <div class="hero__scroll-line"></div>
+        <span>Scroll</span>
+      </div>
+    </section>
+
+    <!-- =============================================
+         2. ATMOSPHERIC INTRO
+         ============================================= -->
+    <section class="intro section" id="about" aria-labelledby="intro-title">
+      <div class="container">
+        <div class="intro__inner">
+
+          <div class="intro__text">
+            <p class="eyebrow reveal">— About the Room</p>
+            <div class="brass-rule reveal" style="--i:1"></div>
+            <blockquote class="intro__quote reveal" style="--i:2" id="intro-title">
+              Down a staircase,<br>past the <em>amber glow</em>,<br>there is a room.
+            </blockquote>
+            <p class="intro__body reveal" style="--i:3">
+              Ember &amp; Rye is a subterranean cocktail and jazz bar occupying a late-Victorian cellar
+              beneath Soho's West End. Named for the char of a wood fire and the bite of a good rye,
+              it is a place for those who arrive after ten and stay until things blur beautifully.
+            </p>
+            <br>
+            <p class="intro__body reveal" style="--i:4">
+              The drinks are built with patience. The music is never recorded. The light
+              has never been turned up higher than it is at this moment.
+            </p>
+          </div>
+
+          <div class="intro__visual reveal-fade">
+            <div class="intro__glow-panel"></div>
+            <div class="intro__numeral" aria-hidden="true">XIX</div>
+            <div class="intro__panel-text">
+              <p>A Victorian cellar. A permanent state of almost midnight.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================
+         3. COCKTAILS / MENU
+         ============================================= -->
+    <section class="cocktails section" id="cocktails" aria-labelledby="cocktails-title">
+      <div class="container">
+
+        <div class="cocktails__header">
+          <div>
+            <p class="eyebrow">— Signature Works</p>
+            <h2 class="display-lg reveal" id="cocktails-title">The Cocktail<br>Programme</h2>
+          </div>
+          <p class="cocktails__header-sub reveal" style="--i:2">
+            Every drink is built by hand.<br>No pre-batched. No shortcuts.<br>House ice only.
+          </p>
+        </div>
+
+        <!-- Cocktail list — 5 drinks -->
+        <ol class="cocktails__list" aria-label="Cocktail menu">
+
+          <li class="cocktail-item reveal-stagger" style="--i:0">
+            <span class="cocktail-item__num" aria-hidden="true">01</span>
+            <div>
+              <h3 class="cocktail-item__name">The Soho Ember</h3>
+              <p class="cocktail-item__ingredients">Bulleit Rye · Mezcal · Smoked honey · Mole bitters · Orange zest</p>
+            </div>
+            <span class="cocktail-item__price" aria-label="Price: 16 pounds">£16</span>
+          </li>
+
+          <li class="cocktail-item reveal-stagger" style="--i:1">
+            <span class="cocktail-item__num" aria-hidden="true">02</span>
+            <div>
+              <h3 class="cocktail-item__name">Velvet Negroni</h3>
+              <p class="cocktail-item__ingredients">Campari · Carpano Antica · Tanqueray 10 · Rose water · Burnt orange</p>
+            </div>
+            <span class="cocktail-item__price" aria-label="Price: 14 pounds">£14</span>
+          </li>
+
+          <li class="cocktail-item reveal-stagger" style="--i:2">
+            <span class="cocktail-item__num" aria-hidden="true">03</span>
+            <div>
+              <h3 class="cocktail-item__name">Cigarette & Saffron</h3>
+              <p class="cocktail-item__ingredients">Lapsang souchong-washed gin · Lemon · Saffron syrup · Egg white · Cardamom</p>
+            </div>
+            <span class="cocktail-item__price" aria-label="Price: 15 pounds">£15</span>
+          </li>
+
+          <li class="cocktail-item reveal-stagger" style="--i:3">
+            <span class="cocktail-item__num" aria-hidden="true">04</span>
+            <div>
+              <h3 class="cocktail-item__name">Brasserie Noir</h3>
+              <p class="cocktail-item__ingredients">Cold brew vodka · Dark crème de cacao · Espresso · Salted caramel · Sesame</p>
+            </div>
+            <span class="cocktail-item__price" aria-label="Price: 15 pounds">£15</span>
+          </li>
+
+          <li class="cocktail-item reveal-stagger" style="--i:4">
+            <span class="cocktail-item__num" aria-hidden="true">05</span>
+            <div>
+              <h3 class="cocktail-item__name">The Last Train South</h3>
+              <p class="cocktail-item__ingredients">Armagnac · Fig leaf cordial · Amaro Montenegro · Smoked salt · Dried fig</p>
+            </div>
+            <span class="cocktail-item__price" aria-label="Price: 17 pounds">£17</span>
+          </li>
+
+        </ol>
+
+      </div>
+    </section>
+
+    <!-- =============================================
+         4. JAZZ / EVENTS
+         ============================================= -->
+    <section class="events section" id="events" aria-labelledby="events-title">
+      <div class="container">
+        <div class="events__inner">
+
+          <div class="events__intro">
+            <p class="eyebrow reveal">— Live Every Night</p>
+            <h2 class="display-lg reveal events__title" id="events-title" style="transition-delay: 100ms">
+              The Music<br>Never Stops
+            </h2>
+            <p class="events__desc reveal" style="transition-delay: 200ms">
+              Seven nights a week, rotating acts from London's underground jazz circuit.
+              No cover charge. No reservations for the bar. Show up. Stay late.
+            </p>
+            <a href="#reservations" class="btn reveal" style="transition-delay: 300ms">Reserve for Tonight</a>
+          </div>
+
+          <div class="schedule" aria-label="Weekly jazz schedule">
+
+            <div class="schedule__item reveal-stagger" style="--i:0">
+              <span class="schedule__day">Monday</span>
+              <div>
+                <p class="schedule__act">The Quartet Residency</p>
+                <p class="schedule__genre">Post-bop / Contemporary Jazz</p>
+              </div>
+              <span class="schedule__time">21:00 – 01:00</span>
+            </div>
+
+            <div class="schedule__item reveal-stagger" style="--i:1">
+              <span class="schedule__day">Tuesday</span>
+              <div>
+                <p class="schedule__act">Solo Piano Nights</p>
+                <p class="schedule__genre">Standard &amp; Improvisation</p>
+              </div>
+              <span class="schedule__time">20:30 – 00:00</span>
+            </div>
+
+            <div class="schedule__item schedule__item--tonight reveal-stagger" style="--i:2">
+              <span class="schedule__day">Wednesday</span>
+              <div>
+                <p class="schedule__act">Maya & The Slow Burn</p>
+                <p class="schedule__genre">Vocal Jazz / French Chanson</p>
+              </div>
+              <span class="schedule__time">21:30 – 02:00</span>
+            </div>
+
+            <div class="schedule__item reveal-stagger" style="--i:3">
+              <span class="schedule__day">Thursday</span>
+              <div>
+                <p class="schedule__act">Arco String Collective</p>
+                <p class="schedule__genre">Chamber Jazz / Experimental</p>
+              </div>
+              <span class="schedule__time">21:00 – 01:30</span>
+            </div>
+
+            <div class="schedule__item reveal-stagger" style="--i:4">
+              <span class="schedule__day">Friday</span>
+              <div>
+                <p class="schedule__act">Midnight Brass</p>
+                <p class="schedule__genre">Big Band / Swing</p>
+              </div>
+              <span class="schedule__time">22:00 – 03:00</span>
+            </div>
+
+            <div class="schedule__item reveal-stagger" style="--i:5">
+              <span class="schedule__day">Saturday</span>
+              <div>
+                <p class="schedule__act">Open Session Nights</p>
+                <p class="schedule__genre">Rotating Guest Artists</p>
+              </div>
+              <span class="schedule__time">21:00 – 03:00</span>
+            </div>
+
+            <div class="schedule__item reveal-stagger" style="--i:6">
+              <span class="schedule__day">Sunday</span>
+              <div>
+                <p class="schedule__act">Vinyl & Vermouth</p>
+                <p class="schedule__genre">DJ Set / Classic Jazz Records</p>
+              </div>
+              <span class="schedule__time">19:00 – 00:00</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================
+         5. INTERIOR MOOD PANELS
+         CSS-painted atmospheric images
+         ============================================= -->
+    <section class="interior section" id="interior" aria-labelledby="interior-title">
+      <div class="container interior__header">
+        <p class="eyebrow reveal">— The Space</p>
+        <h2 class="display-lg reveal" id="interior-title" style="transition-delay: 100ms">
+          A room that<br>keeps its secrets.
+        </h2>
+      </div>
+
+      <div class="interior__grid" role="img" aria-label="Interior mood photographs of Ember & Rye">
+        <div class="interior__panel reveal-stagger" style="--i:0">
+          <div class="interior__panel-inner"></div>
+          <span class="interior__panel-caption">The Main Room</span>
+        </div>
+        <div class="interior__panel reveal-stagger" style="--i:1">
+          <div class="interior__panel-inner"></div>
+          <span class="interior__panel-caption">The Bar</span>
+        </div>
+        <div class="interior__panel reveal-stagger" style="--i:2">
+          <div class="interior__panel-inner"></div>
+          <span class="interior__panel-caption">The Stage</span>
+        </div>
+        <div class="interior__panel reveal-stagger" style="--i:3">
+          <div class="interior__panel-inner"></div>
+          <span class="interior__panel-caption">Private Booths</span>
+        </div>
+        <div class="interior__panel reveal-stagger" style="--i:4">
+          <div class="interior__panel-inner"></div>
+          <span class="interior__panel-caption">The Cellar Stair</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================
+         6. RESERVATIONS
+         ============================================= -->
+    <section class="reservations section" id="reservations" aria-labelledby="reservations-title">
+      <div class="container">
+        <div class="reservations__inner">
+
+          <!-- Left: info -->
+          <div class="reservations__info">
+            <p class="eyebrow reveal">— Find Us</p>
+            <h2 class="display-lg reservations__title reveal" id="reservations-title" style="transition-delay: 100ms">
+              Reserve<br>Your Evening
+            </h2>
+
+            <!-- Opening hours -->
+            <div class="hours reveal" style="transition-delay: 200ms" aria-label="Opening hours">
+              <div class="hours__row hours__row--closed">
+                <span class="hours__day">Monday</span>
+                <span class="hours__time">Closed</span>
+              </div>
+              <div class="hours__row">
+                <span class="hours__day">Tuesday – Thursday</span>
+                <span class="hours__time">18:00 – 02:00</span>
+              </div>
+              <div class="hours__row">
+                <span class="hours__day">Friday – Saturday</span>
+                <span class="hours__time">18:00 – 04:00</span>
+              </div>
+              <div class="hours__row">
+                <span class="hours__day">Sunday</span>
+                <span class="hours__time">17:00 – 00:00</span>
+              </div>
+            </div>
+
+            <!-- Address -->
+            <div class="reservations__address reveal" style="transition-delay: 300ms">
+              <strong>Ember &amp; Rye</strong>
+              <address style="font-style: normal;">
+                <p>14 Beak Street<br>Soho, London W1F 9RB<br>United Kingdom</p>
+                <br>
+                <p>+44 (0)20 7123 4567</p>
+                <p>hello@emberandrye.co.uk</p>
+              </address>
+            </div>
+          </div>
+
+          <!-- Right: booking form -->
+          <div class="reservations__form-wrap">
+            <form class="form" id="bookingForm" aria-label="Reservation form" novalidate>
+
+              <div class="form__row">
+                <div class="form__field">
+                  <label for="firstName">First Name</label>
+                  <input type="text" id="firstName" name="firstName" placeholder="Sylvia" autocomplete="given-name" required />
+                </div>
+                <div class="form__field">
+                  <label for="lastName">Last Name</label>
+                  <input type="text" id="lastName" name="lastName" placeholder="Plath" autocomplete="family-name" required />
+                </div>
+              </div>
+
+              <div class="form__field">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="you@domain.com" autocomplete="email" required />
+              </div>
+
+              <div class="form__row">
+                <div class="form__field">
+                  <label for="date">Date</label>
+                  <input type="date" id="date" name="date" required />
+                </div>
+                <div class="form__field">
+                  <label for="time">Preferred Time</label>
+                  <select id="time" name="time" required>
+                    <option value="" disabled selected>Select</option>
+                    <option>18:00</option>
+                    <option>19:00</option>
+                    <option>20:00</option>
+                    <option>21:00</option>
+                    <option>22:00</option>
+                    <option>23:00</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form__field">
+                <label for="guests">Number of Guests</label>
+                <select id="guests" name="guests" required>
+                  <option value="" disabled selected>Select</option>
+                  <option>1 guest</option>
+                  <option>2 guests</option>
+                  <option>3 guests</option>
+                  <option>4 guests</option>
+                  <option>5 – 8 guests</option>
+                  <option>Private hire enquiry</option>
+                </select>
+              </div>
+
+              <div class="form__field">
+                <label for="notes">Anything to know?</label>
+                <textarea id="notes" name="notes" placeholder="Dietary requirements, special occasions, preferred booth…"></textarea>
+              </div>
+
+              <button type="submit" class="form__submit">
+                Request Reservation
+              </button>
+
+            </form>
+
+            <!-- Confirmation state -->
+            <div class="form__success" id="formSuccess" aria-live="polite">
+              <p>Your table awaits you.<br>We'll confirm within the hour.</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =============================================
+       FOOTER
+       ============================================= -->
+  <footer class="footer" aria-label="Footer">
+    <div class="container">
+      <div class="footer__inner">
+
+        <div class="footer__logo" aria-label="Ember & Rye">
+          Ember <span>&</span> Rye
+        </div>
+
+        <p class="footer__poem">
+          "All good things are wild and free —<br>
+          but the best are found below street level,<br>
+          at a table for two, with the ice already melting."
+        </p>
+
+        <nav class="footer__social" aria-label="Social links">
+          <a href="#" aria-label="Instagram">Instagram</a>
+          <a href="#" aria-label="Facebook">Facebook</a>
+          <a href="#" aria-label="Email us">Email</a>
+        </nav>
+
+        <p class="footer__copyright">
+          &copy; 2025 Ember &amp; Rye. 14 Beak Street, Soho, London. All rights reserved.
+        </p>
+
+      </div>
+    </div>
+  </footer>
+
+  <!-- =============================================
+       JAVASCRIPT
+       Navigation, scroll effects, animations
+       ============================================= -->
+  <script>
+    // ── 1. HERO LOAD ANIMATION
+    // Brief delay so fonts have time to paint before we reveal
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.querySelectorAll('.hero-load').forEach(el => {
+          el.classList.add('loaded');
+        });
+      }, 120);
+    });
+
+    // ── 2. NAV: scrolled state + glass effect
+    const nav = document.getElementById('nav');
+    function updateNav() {
+      nav.classList.toggle('scrolled', window.scrollY > 60);
+    }
+    window.addEventListener('scroll', updateNav, { passive: true });
+
+    // ── 3. HERO PARALLAX
+    // Subtle background drift — uses translateY on the bg div
+    // We keep the movement very slow (max 15% of scroll) so it
+    // feels atmospheric rather than cartoonish
+    const heroBg = document.getElementById('heroBg');
+    function updateParallax() {
+      if (!heroBg) return;
+      const scrolled = window.scrollY;
+      const limit    = window.innerHeight;
+      if (scrolled > limit) return; // don't bother below the fold
+      heroBg.style.transform = `translateY(${scrolled * 0.18}px)`;
+    }
+    window.addEventListener('scroll', updateParallax, { passive: true });
+
+    // ── 4. INTERSECTION OBSERVER — scroll reveal system
+    // Single observer handles three animation classes:
+    //   .reveal         — fade + translateY, no stagger
+    //   .reveal-stagger — same but uses CSS --i custom property for stagger delay
+    //   .reveal-left    — fade + translateX from left
+    //   .reveal-fade    — opacity only (for large decorative elements)
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          // Once revealed, unobserve to save performance
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.12,       // trigger when 12% of element is visible
+      rootMargin: '0px 0px -40px 0px'  // slight bottom offset for earlier reveal
+    });
+
+    // Observe all animated elements
+    document.querySelectorAll('.reveal, .reveal-stagger, .reveal-left, .reveal-fade')
+      .forEach(el => revealObserver.observe(el));
+
+    // ── 5. MOBILE NAVIGATION TOGGLE
+    const hamburger    = document.getElementById('hamburger');
+    const mobileMenu   = document.getElementById('mobileMenu');
+    const mobileLinks  = document.querySelectorAll('.mobile-link');
+
+    function toggleMenu(open) {
+      hamburger.classList.toggle('open', open);
+      mobileMenu.classList.toggle('open', open);
+      mobileMenu.setAttribute('aria-hidden', !open);
+      hamburger.setAttribute('aria-expanded', open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    }
+
+    hamburger.addEventListener('click', () => {
+      const isOpen = hamburger.classList.contains('open');
+      toggleMenu(!isOpen);
+    });
+
+    // Close on link click
+    mobileLinks.forEach(link => {
+      link.addEventListener('click', () => toggleMenu(false));
+    });
+
+    // ── 6. FORM SUBMISSION — demo handler
+    // In production, replace the body of this handler with
+    // your actual API call (e.g. to Formspree / Netlify Forms)
+    const form        = document.getElementById('bookingForm');
+    const formSuccess = document.getElementById('formSuccess');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      // Minimal client-side validation
+      const required = form.querySelectorAll('[required]');
+      let valid = true;
+      required.forEach(field => {
+        if (!field.value.trim()) {
+          field.style.borderColor = 'rgba(196,130,58,0.6)';
+          valid = false;
+        } else {
+          field.style.borderColor = '';
+        }
+      });
+
+      if (!valid) return;
+
+      // Success state
+      form.style.opacity = '0';
+      form.style.transition = 'opacity 0.4s ease';
+      setTimeout(() => {
+        form.style.display = 'none';
+        formSuccess.classList.add('visible');
+      }, 400);
+    });
+
+    // ── 7. INTERIOR PANEL hover — gentle Ken Burns
+    // On mouseenter we start a slow scale; CSS handles it (8s ease-out)
+    // This looks like old photography slowly coming alive
+    document.querySelectorAll('.interior__panel').forEach(panel => {
+      const inner = panel.querySelector('.interior__panel-inner');
+      if (!inner) return;
+      panel.addEventListener('mouseenter', () => {
+        inner.style.transform = 'scale(1.06)';
+        inner.style.transition = 'transform 8s cubic-bezier(0.16, 1, 0.3, 1)';
+      });
+      panel.addEventListener('mouseleave', () => {
+        inner.style.transform = 'scale(1)';
+        inner.style.transition = 'transform 6s cubic-bezier(0.16, 1, 0.3, 1)';
+      });
+    });
+
+    // ── 8. COCKTAIL ITEM — subtle line draw on hover
+    // The ::before pseudo-element already handles the bg tint via CSS.
+    // This adds an ARIA live announcement for screen readers.
+    // (No extra JS needed — pure CSS handles the hover state.)
+
+  </script>
+
+</body>
+</html>
